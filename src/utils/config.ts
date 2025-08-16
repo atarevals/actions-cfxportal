@@ -1,4 +1,5 @@
 import env from "../env";
+import { parseYamlArray } from "./yaml-parser.js";
 
 export interface AppConfig {
 	portal: {
@@ -16,6 +17,11 @@ export interface AppConfig {
 		filePath: string;
 		maxFileSize: number;
 		allowedExtensions: string[];
+	};
+	zip: {
+		enabled: boolean;
+		files: string[];
+		outputPath: string;
 	};
 }
 
@@ -35,5 +41,10 @@ export const config: AppConfig = {
 		filePath: env.FILE_TO_UPLOAD,
 		maxFileSize: 1 * 1024 * 1024 * 1024, // 1gb
 		allowedExtensions: [".zip"],
+	},
+	zip: {
+		enabled: env.ZIP_ENABLED === "true",
+		files: parseYamlArray(env.ZIP_FILES),
+		outputPath: env.ZIP_OUTPUT_PATH || "./dist/output.zip",
 	},
 };

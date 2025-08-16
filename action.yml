@@ -19,6 +19,21 @@ inputs:
   file-path:
     description: 'Path to the file to upload'
     required: true
+  zip-enabled:
+    description: 'Enable zip creation (true/false)'
+    required: false
+    default: 'false'
+  zip-files:
+    description: 'YAML array of files/folders to include in zip (e.g., "[src/, dist/main.js, README.md]" or multiline YAML list)'
+    required: false
+  zip-output-path:
+    description: 'Output path for the zip file'
+    required: false
+    default: './dist/output.zip'
+  log-level:
+    description: 'Logging level (e.g., debug, info, warn, error)'
+    required: false
+    default: 'info'
 
 runs:
   using: 'composite'
@@ -27,6 +42,50 @@ runs:
       uses: oven-sh/setup-bun@v1
       with:
         bun-version: latest
+    
+    - name: Install Chrome dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          ca-certificates \
+          fonts-liberation \
+          libappindicator3-1 \
+          libasound2 \
+          libatk-bridge2.0-0 \
+          libatk1.0-0 \
+          libc6 \
+          libcairo2 \
+          libcups2 \
+          libdbus-1-3 \
+          libexpat1 \
+          libfontconfig1 \
+          libgbm1 \
+          libgcc1 \
+          libglib2.0-0 \
+          libgtk-3-0 \
+          libnspr4 \
+          libnss3 \
+          libpango-1.0-0 \
+          libpangocairo-1.0-0 \
+          libstdc++6 \
+          libx11-6 \
+          libx11-xcb1 \
+          libxcb1 \
+          libxcomposite1 \
+          libxcursor1 \
+          libxdamage1 \
+          libxext6 \
+          libxfixes3 \
+          libxi6 \
+          libxrandr2 \
+          libxrender1 \
+          libxss1 \
+          libxtst6 \
+          lsb-release \
+          wget \
+          xdg-utils
+      shell: bash
     
     - name: Install dependencies
       run: bun install
@@ -42,4 +101,9 @@ runs:
         PORTAL_ASSET_ID: ${{ inputs.asset-id }}
         PORTAL_ASSET_NAME: ${{ inputs.asset-name }}
         FILE_TO_UPLOAD: ${{ inputs.file-path }}
+        ZIP_ENABLED: ${{ inputs.zip-enabled }}
+        ZIP_FILES: ${{ inputs.zip-files }}
+        ZIP_OUTPUT_PATH: ${{ inputs.zip-output-path }}
+        LOG_LEVEL: ${{ inputs.log-level }}
+        USER_WORKSPACE: ${{ github.workspace }}
         NODE_ENV: 'production'

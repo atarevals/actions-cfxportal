@@ -5,9 +5,11 @@ import type { BrowserService } from "./BrowserService.js";
 
 export class UploadService {
 	private browserService: BrowserService;
+	private filePath: string;
 
-	constructor(browserService: BrowserService) {
+	constructor(browserService: BrowserService, filePath?: string) {
 		this.browserService = browserService;
+		this.filePath = filePath || config.upload.filePath;
 	}
 
 	/**
@@ -75,7 +77,7 @@ export class UploadService {
 		if (!input) throw new Error("File input not found");
 
 		logger.debug("File input found, uploading file...");
-		await input.uploadFile(config.upload.filePath);
+		await input.uploadFile(this.filePath);
 	}
 
 	async submitUpload() {

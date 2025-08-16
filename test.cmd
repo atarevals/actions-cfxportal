@@ -1,0 +1,1 @@
+act --rm -P windows-latest=-self-hosted -W .github/workflows/test-local.yml --var-file .vars --secret-file .secrets
