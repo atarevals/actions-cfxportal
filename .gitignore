@@ -1,11 +1,6 @@
 # dependencies (bun install)
 node_modules
 
-# output
-out
-dist
-*.tgz
-
 # code coverage
 coverage
 *.lcov
@@ -22,12 +17,8 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .env.production.local
 .env.local
 
+# test files (keep for reference)
 test-files
-
-# caches
-.eslintcache
-.cache
-*.tsbuildinfo
 
 # IntelliJ based IDEs
 .idea

@@ -1,0 +1,38 @@
+name: Deploy to CFX Portal
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on version tags like v1.0.0
+  workflow_dispatch:  # Allow manual execution
+    inputs:
+      asset_id:
+        description: 'Asset ID to upload to (overrides repo variable)'
+        required: false
+        type: string
+      asset_name:
+        description: 'Asset name (overrides repo variable)'
+        required: false
+        type: string
+      file_path:
+        description: 'Path to file to upload'
+        required: true
+        type: string
+        default: './dist/release.zip'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to CFX Portal
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Upload to CFX Portal
+      uses: ./
+      with:
+        portal-token: ${{ secrets.CFX_PORTAL_TOKEN }}
+        asset-id: ${{ github.event.inputs.asset_id || vars.CFX_ASSET_ID }}
+        asset-name: ${{ github.event.inputs.asset_name || vars.CFX_ASSET_NAME }}
+        file-path: ${{ github.event.inputs.file_path || './dist/release.zip' }}

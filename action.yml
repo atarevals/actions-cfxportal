@@ -1,0 +1,45 @@
+name: 'CFX Portal Upload'
+description: 'Upload files to CFX.re Portal automatically'
+author: 'HeyyCzer'
+
+branding:
+  icon: 'upload-cloud'
+  color: 'blue'
+
+inputs:
+  portal-token:
+    description: 'CFX Portal authentication token'
+    required: true
+  asset-id:
+    description: 'Asset ID to upload to'
+    required: true
+  asset-name:
+    description: 'Name of the asset'
+    required: true
+  file-path:
+    description: 'Path to the file to upload'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v1
+      with:
+        bun-version: latest
+    
+    - name: Install dependencies
+      run: bun install
+      shell: bash
+      working-directory: ${{ github.action_path }}
+    
+    - name: Run CFX Portal Upload
+      run: bun run src/index.ts
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        PORTAL_TOKEN: ${{ inputs.portal-token }}
+        PORTAL_ASSET_ID: ${{ inputs.asset-id }}
+        PORTAL_ASSET_NAME: ${{ inputs.asset-name }}
+        FILE_TO_UPLOAD: ${{ inputs.file-path }}
+        NODE_ENV: 'production'

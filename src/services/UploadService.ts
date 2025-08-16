@@ -1,7 +1,7 @@
-import { sleepSync } from "bun";
-import { config } from "../utils/config";
-import logger from "../utils/logger";
-import type { BrowserService } from "./BrowserService";
+import { sleep } from "bun";
+import { config } from "../utils/config.js";
+import logger from "../utils/logger.js";
+import type { BrowserService } from "./BrowserService.js";
 
 export class UploadService {
 	private browserService: BrowserService;
@@ -12,7 +12,7 @@ export class UploadService {
 
 	/**
 	 * Open the upload modal
-	*/
+	 */
 	async initUpload() {
 		const bService = this.browserService;
 		const page = bService.getPage();
@@ -24,7 +24,9 @@ export class UploadService {
 
 		await page?.waitForNetworkIdle({ idleTime: 2000 });
 
-		logger.info(`Attempting to find asset ${config.portal.asset_id} in table...`);
+		logger.info(
+			`Attempting to find asset ${config.portal.asset_id} in table...`,
+		);
 
 		const tableIdColumns = await page.$$("tr");
 		for (const column of tableIdColumns) {
@@ -38,10 +40,9 @@ export class UploadService {
 			await column.click();
 		}
 
-		sleepSync(2000);
+		await sleep(2000);
 
 		logger.debug("Attempting to find upload button...");
-
 		const allButtons = await page.$$("button");
 		let uploadButton = null;
 		for (const button of allButtons) {
@@ -55,7 +56,6 @@ export class UploadService {
 		if (!uploadButton) throw new Error("Upload button not found");
 
 		logger.debug("Upload button found, clicking...");
-
 		await uploadButton.click();
 	}
 
@@ -75,7 +75,6 @@ export class UploadService {
 		if (!input) throw new Error("File input not found");
 
 		logger.debug("File input found, uploading file...");
-
 		await input.uploadFile(config.upload.filePath);
 	}
 
@@ -98,7 +97,6 @@ export class UploadService {
 		if (!confirmButton) throw new Error("Confirm button not found");
 
 		logger.debug("Confirm button found, clicking...");
-
 		await confirmButton.click();
 
 		logger.debug("Waiting for upload to complete...");
@@ -109,7 +107,9 @@ export class UploadService {
 			const progressBar = await page.$("[class*='ProgressBar_progressInner']");
 			if (!progressBar) break;
 
-			const progress = await progressBar.evaluate((el) => (el as HTMLDivElement).style.width);
+			const progress = await progressBar.evaluate(
+				(el) => (el as HTMLDivElement).style.width,
+			);
 			if (lastProgress === progress) continue;
 
 			logger.info(`Upload progress: ${progress}`);
@@ -119,5 +119,4 @@ export class UploadService {
 
 		logger.info("Upload completed successfully");
 	}
-
 }
