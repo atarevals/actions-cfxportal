@@ -1,30 +1,47 @@
-import { BrowserService } from "./services/BrowserService.js";
-import { UploadService } from "./services/UploadService.js";
-import { ZipService } from "./services/ZipService.js";
-import { config } from "./utils/config.js";
-import logger from "./utils/logger.js";
+import { existsSync } from "node:fs";
+import path from "node:path";
+import env from "./env.js";
+import { BrowserService } from "./services/BrowserService";
+import { UploadService } from "./services/UploadService";
+import { ZipService } from "./services/ZipService";
+import { config } from "./utils/config";
+import logger from "./utils/logger";
 
 async function run(): Promise<void> {
 	try {
 		logger.info("Starting CFX Portal upload process...");
+
+		logger.debug(`Current folder: ${process.cwd()}`);
 
 		let fileToUpload = config.upload.filePath;
 
 		// Create zip if enabled
 		if (config.zip.enabled) {
 			logger.info("Zip creation is enabled, creating zip file...");
-			
+
 			const zipService = new ZipService(config.zip);
 			zipService.validateConfig();
-			
+
 			const filesToInclude = zipService.getFilesToInclude();
 			logger.info(`Files to be included in zip: ${filesToInclude.join(", ")}`);
-			
+
 			const zipPath = await zipService.createZip();
 			fileToUpload = zipPath;
 			logger.info(`Zip file created successfully: ${zipPath}`);
 		} else {
 			logger.info("Zip creation is disabled, using original file path");
+
+			const initialPath = config.upload.filePath;
+			const workspace = env.USER_WORKSPACE ?? process.cwd();
+			const filePath = path.resolve(workspace, initialPath);
+
+			if (!existsSync(filePath)) {
+				logger.error(`File not found: ${filePath}`);
+				process.exit(1);
+			}
+
+			fileToUpload = filePath;
+			logger.info(`File to upload: ${fileToUpload}`);
 		}
 
 		const browserService = new BrowserService();
@@ -39,7 +56,7 @@ async function run(): Promise<void> {
 		if (config.portal.waitUntilProcessed) {
 			await uploadService.waitUntilProcessed();
 		}
-		
+
 		await browserService.closeBrowser();
 		logger.info("Everything completed successfully!");
 	} catch (error) {

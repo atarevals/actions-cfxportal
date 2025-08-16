@@ -8,7 +8,7 @@ A GitHub Action to automatically upload files to CFX.re Portal.
 - 🔒 Secure authentication using tokens
 - 📦 Built with TypeScript and Bun runtime
 - ⚡ Fast and reliable uploads
-- 🗜️ **NEW: Automatic zip creation from specified files/folders**
+- 🗜️ Automatic zip creation from specified files/folders**
 - 🏗️ Composite action - no pre-compilation needed
 
 ## Usage
@@ -19,9 +19,9 @@ To use this action in your workflow, add the following step:
 
 ```yaml
 - name: Upload to CFX Portal
-  uses: your-username/actions-cfxportal@v1
+  uses: HeyyCzer/actions-cfxportal@beta
   with:
-    portal-token: ${{ secrets.CFX_PORTAL_TOKEN }}
+    portal-token: ${{ secrets.PORTAL_TOKEN }}
     asset-id: '12345'
     asset-name: 'my-asset-name'
     file-path: './dist/my-file.zip'
@@ -34,9 +34,9 @@ You can enable automatic zip creation to package specific files/folders:
 #### Method 1: YAML Array Format
 ```yaml
 - name: Upload to CFX Portal with Zip
-  uses: your-username/actions-cfxportal@v1
+  uses: HeyyCzer/actions-cfxportal@beta
   with:
-    portal-token: ${{ secrets.CFX_PORTAL_TOKEN }}
+    portal-token: ${{ secrets.PORTAL_TOKEN }}
     asset-id: '12345'
     asset-name: 'my-asset-name'
     file-path: './dist/output.zip'  # This will be ignored when zip is enabled
@@ -48,9 +48,9 @@ You can enable automatic zip creation to package specific files/folders:
 #### Method 2: Multiline YAML List
 ```yaml
 - name: Upload to CFX Portal with Zip
-  uses: your-username/actions-cfxportal@v1
+  uses: HeyyCzer/actions-cfxportal@beta
   with:
-    portal-token: ${{ secrets.CFX_PORTAL_TOKEN }}
+    portal-token: ${{ secrets.PORTAL_TOKEN }}
     asset-id: '12345'
     asset-name: 'my-asset-name'
     file-path: './dist/output.zip'
@@ -66,9 +66,9 @@ You can enable automatic zip creation to package specific files/folders:
 #### Method 3: Simple Multiline
 ```yaml
 - name: Upload to CFX Portal with Zip
-  uses: your-username/actions-cfxportal@v1
+  uses: HeyyCzer/actions-cfxportal@beta
   with:
-    portal-token: ${{ secrets.CFX_PORTAL_TOKEN }}
+    portal-token: ${{ secrets.PORTAL_TOKEN }}
     asset-id: '12345'
     asset-name: 'my-asset-name'
     file-path: './dist/output.zip'
@@ -140,7 +140,7 @@ You'll need to add the following secret to your repository:
 
 1. Go to your repository settings
 2. Navigate to "Secrets and variables" → "Actions"
-3. Add a new secret named `CFX_PORTAL_TOKEN` with your CFX.re portal token
+3. Add a new secret named `PORTAL_TOKEN` with your CFX.re portal token
 
 ## Example Workflow
 
@@ -177,9 +177,9 @@ jobs:
       run: zip -r my-project.zip dist/
     
     - name: Upload to CFX Portal
-      uses: your-username/actions-cfxportal@v1
+      uses: HeyyCzer/actions-cfxportal@beta
       with:
-        portal-token: ${{ secrets.CFX_PORTAL_TOKEN }}
+        portal-token: ${{ secrets.PORTAL_TOKEN }}
         asset-id: '12345'
         asset-name: 'my-project'
         file-path: './my-project.zip'
@@ -213,9 +213,9 @@ jobs:
       run: npm run build
     
     - name: Upload to CFX Portal
-      uses: your-username/actions-cfxportal@v1
+      uses: HeyyCzer/actions-cfxportal@beta
       with:
-        portal-token: ${{ secrets.CFX_PORTAL_TOKEN }}
+        portal-token: ${{ secrets.PORTAL_TOKEN }}
         asset-id: '12345'
         asset-name: 'my-project'
         file-path: './not-used-when-zip-enabled.zip'

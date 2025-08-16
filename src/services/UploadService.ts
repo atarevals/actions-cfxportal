@@ -48,7 +48,8 @@ export class UploadService {
 		);
 
 		const row = await this.getRow();
-		if (!row) throw new Error(`Asset ${config.portal.asset_id} not found in table`);
+		if (!row)
+			throw new Error(`Asset ${config.portal.asset_id} not found in table`);
 
 		logger.info(`Found asset ${config.portal.asset_id} in table`);
 		await row.click();
@@ -138,7 +139,8 @@ export class UploadService {
 		if (!page) throw new Error("Page not initialized");
 
 		const row = await this.getRow();
-		if (!row) throw new Error(`Asset ${config.portal.asset_id} not found in table`);
+		if (!row)
+			throw new Error(`Asset ${config.portal.asset_id} not found in table`);
 
 		const tableRow = await row.evaluate((el) => ({
 			id: el.querySelector("td:nth-child(2)")?.textContent?.trim(),
@@ -160,9 +162,10 @@ export class UploadService {
 
 		const info = await this.getAssetInfo();
 		if (info.status === "failed") {
-			throw new Error(`There was an error with the uploaded asset: ${JSON.stringify(info)}`);
+			throw new Error(
+				`There was an error with the uploaded asset: ${JSON.stringify(info)}`,
+			);
 		}
 		logger.info(`Asset processed successfully: ${JSON.stringify(info)}`);
 	}
-
 }

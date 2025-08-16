@@ -33,7 +33,7 @@ export const config: AppConfig = {
 		},
 		asset_id: Number(env.PORTAL_ASSET_ID),
 		asset_name: env.PORTAL_ASSET_NAME,
-		waitUntilProcessed: Boolean(env.PORTAL_WAIT_UNTIL_PROCESSED),
+		waitUntilProcessed: String(env.PORTAL_WAIT_UNTIL_PROCESSED).toLowerCase() === 'true',
 	},
 	puppeteer: {
 		headless: env.NODE_ENV === "production",
