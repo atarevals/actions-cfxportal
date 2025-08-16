@@ -12,6 +12,23 @@ export class UploadService {
 		this.filePath = filePath || config.upload.filePath;
 	}
 
+	async getRow() {
+		const page = this.browserService.getPage();
+		if (!page) throw new Error("Page not initialized");
+
+		const tableRows = await page.$$("tr");
+		for (const row of tableRows) {
+			const secondColumn = await row.$("td:nth-child(2)");
+			if (!secondColumn) continue;
+
+			const assetId = await secondColumn.evaluate((el) => el.textContent);
+			if (Number(assetId) !== config.portal.asset_id) continue;
+
+			return row;
+		}
+		return null;
+	}
+
 	/**
 	 * Open the upload modal
 	 */
@@ -30,17 +47,11 @@ export class UploadService {
 			`Attempting to find asset ${config.portal.asset_id} in table...`,
 		);
 
-		const tableIdColumns = await page.$$("tr");
-		for (const column of tableIdColumns) {
-			const secondColumn = await column.$("td:nth-child(2)");
-			if (!secondColumn) continue;
+		const row = await this.getRow();
+		if (!row) throw new Error(`Asset ${config.portal.asset_id} not found in table`);
 
-			const assetId = await secondColumn.evaluate((el) => el.textContent);
-			if (Number(assetId) !== config.portal.asset_id) continue;
-
-			logger.info(`Found asset ${config.portal.asset_id} in table`);
-			await column.click();
-		}
+		logger.info(`Found asset ${config.portal.asset_id} in table`);
+		await row.click();
 
 		await sleep(2000);
 
@@ -121,4 +132,37 @@ export class UploadService {
 
 		logger.info("Upload completed successfully");
 	}
+
+	async getAssetInfo() {
+		const page = this.browserService.getPage();
+		if (!page) throw new Error("Page not initialized");
+
+		const row = await this.getRow();
+		if (!row) throw new Error(`Asset ${config.portal.asset_id} not found in table`);
+
+		const tableRow = await row.evaluate((el) => ({
+			id: el.querySelector("td:nth-child(2)")?.textContent?.trim(),
+			name: el.querySelector("td:nth-child(3)")?.textContent?.trim(),
+			lastUpdated: el.querySelector("td:nth-child(4)")?.textContent?.trim(),
+			status: el.querySelector("td:nth-child(5)")?.textContent?.trim(),
+		}));
+
+		return tableRow;
+	}
+
+	async waitUntilProcessed() {
+		logger.info("We will wait until the asset is processed...");
+
+		while ((await this.getAssetInfo()).status === "processing...") {
+			logger.info("Asset is still processing, waiting...");
+			await sleep(3000);
+		}
+
+		const info = await this.getAssetInfo();
+		if (info.status === "failed") {
+			throw new Error(`There was an error with the uploaded asset: ${JSON.stringify(info)}`);
+		}
+		logger.info(`Asset processed successfully: ${JSON.stringify(info)}`);
+	}
+
 }

@@ -36,9 +36,12 @@ async function run(): Promise<void> {
 		await uploadService.uploadFile();
 		await uploadService.submitUpload();
 
+		if (config.portal.waitUntilProcessed) {
+			await uploadService.waitUntilProcessed();
+		}
+		
 		await browserService.closeBrowser();
-
-		logger.info("Upload completed successfully!");
+		logger.info("Everything completed successfully!");
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : String(error);
 		logger.error(`Error: ${errorMessage}`);

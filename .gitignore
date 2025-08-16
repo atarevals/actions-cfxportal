@@ -24,8 +24,8 @@ dist/
 .vars
 .secrets
 
-# test files (keep for reference)
 # test-files
+test-files/
 
 # IntelliJ based IDEs
 .idea

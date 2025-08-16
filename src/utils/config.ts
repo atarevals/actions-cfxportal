@@ -8,6 +8,7 @@ export interface AppConfig {
 		};
 		asset_id: number;
 		asset_name: string;
+		waitUntilProcessed: boolean;
 	};
 	puppeteer: {
 		headless: boolean;
@@ -32,6 +33,7 @@ export const config: AppConfig = {
 		},
 		asset_id: Number(env.PORTAL_ASSET_ID),
 		asset_name: env.PORTAL_ASSET_NAME,
+		waitUntilProcessed: Boolean(env.PORTAL_WAIT_UNTIL_PROCESSED),
 	},
 	puppeteer: {
 		headless: env.NODE_ENV === "production",

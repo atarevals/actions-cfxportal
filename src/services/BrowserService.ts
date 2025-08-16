@@ -1,6 +1,7 @@
 import puppeteer, { type Browser, type Page } from "puppeteer";
-import { config } from "../utils/config.js";
-import logger from "../utils/logger.js";
+import env from "../env";
+import { config } from "../utils/config";
+import logger from "../utils/logger";
 
 export class BrowserService {
 	private browser: Browser | null = null;
@@ -23,6 +24,9 @@ export class BrowserService {
 					height: 1080,
 				},
 				args: [
+					...(env.NODE_ENV === "development" ? [
+						'--start-maximized'
+					] : []),
 					'--no-sandbox',
 					'--disable-setuid-sandbox',
 					'--disable-dev-shm-usage',
@@ -38,9 +42,9 @@ export class BrowserService {
 			};
 
 			// Em ambientes CI ou quando não há display disponível
-			if (process.env.CI || process.env.NODE_ENV === 'production') {
-				launchOptions.args?.push('--disable-web-security');
-				launchOptions.args?.push('--disable-features=VizDisplayCompositor');
+			if (process.env.CI || process.env.NODE_ENV === "production") {
+				launchOptions.args?.push("--disable-web-security");
+				launchOptions.args?.push("--disable-features=VizDisplayCompositor");
 			}
 
 			this.browser = await puppeteer.launch(launchOptions);
@@ -51,16 +55,23 @@ export class BrowserService {
 
 			logger.info("Browser started successfully");
 		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : String(error);
-			
+			const errorMessage =
+				error instanceof Error ? error.message : String(error);
+
 			// Verificar se é um erro de dependências do Chrome
-			if (errorMessage.includes('libnspr4.so') || 
-				errorMessage.includes('shared libraries') ||
-				errorMessage.includes('chrome-linux64/chrome')) {
-				logger.error('Chrome dependencies missing. In Linux environments, make sure required system packages are installed.');
-				logger.error('Try installing: sudo apt-get update && sudo apt-get install -y ca-certificates fonts-liberation libappindicator3-1 libasound2 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc1 libglib2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release wget xdg-utils');
+			if (
+				errorMessage.includes("libnspr4.so") ||
+				errorMessage.includes("shared libraries") ||
+				errorMessage.includes("chrome-linux64/chrome")
+			) {
+				logger.error(
+					"Chrome dependencies missing. In Linux environments, make sure required system packages are installed.",
+				);
+				logger.error(
+					"Try installing: sudo apt-get update && sudo apt-get install -y ca-certificates fonts-liberation libappindicator3-1 libasound2 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc1 libglib2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release wget xdg-utils",
+				);
 			}
-			
+
 			logger.error(`Error starting browser: ${errorMessage}`);
 			throw new Error(`Failed to initialize browser: ${errorMessage}`);
 		}
