@@ -13,9 +13,9 @@ export class ZipService {
 	private config: ZipConfig;
 	private baseWorkspace: string;
 
-	constructor(config: ZipConfig) {
+	constructor(config: ZipConfig, baseWorkspace: string) {
 		this.config = config;
-		this.baseWorkspace = process.cwd();
+		this.baseWorkspace = baseWorkspace;
 		logger.debug(`Base workspace: ${this.baseWorkspace}`);
 	}
 
@@ -42,9 +42,10 @@ export class ZipService {
 		let foundFiles = false;
 		for (const file of this.config.files) {
 			const fullPath = path.resolve(this.baseWorkspace, file);
-			logger.debug(`Checking existence of: ${file}`);
+			logger.debug(`Checking existence of: ${file} (${fullPath})`);
 
 			if (existsSync(fullPath)) {
+				logger.debug(`File/folder exists: ${file}`);
 				foundFiles = true;
 				break;
 			}
@@ -58,16 +59,17 @@ export class ZipService {
 	}
 
 	getFilesToInclude(): string[] {
+		logger.debug(
+			`Resolving files to include in zip: ${this.config.files.join(", ")}`,
+		);
+
 		const filesToInclude: string[] = [];
-
 		for (const file of this.config.files) {
-			logger.debug(`Resolving file: ${file}`);
-
 			const fullPath = path.resolve(this.baseWorkspace, file);
-			logger.debug(`Full path resolved: ${fullPath}`);
+			logger.debug(`Resolving file: ${file} (${fullPath})`);
 
 			if (existsSync(fullPath)) {
-				logger.debug(`File exists: ${fullPath}`);
+				logger.debug(`File/folder exists: ${file}`);
 				filesToInclude.push(file);
 			}
 		}
