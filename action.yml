@@ -16,6 +16,10 @@ inputs:
   asset-name:
     description: 'Name of the asset'
     required: true
+  wait-processing:
+    description: 'Wait for processing to complete (true/false)'
+    default: 'true'
+    required: true
   file-path:
     description: 'Path to the file to upload'
     required: true
@@ -38,11 +42,6 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Setup Bun
-      uses: oven-sh/setup-bun@v1
-      with:
-        bun-version: latest
-    
     - name: Install Chrome dependencies (Linux)
       if: runner.os == 'Linux'
       run: |
@@ -51,7 +50,6 @@ runs:
           ca-certificates \
           fonts-liberation \
           libappindicator3-1 \
-          libasound2t64 \
           libatk-bridge2.0-0 \
           libatk1.0-0 \
           libc6 \
@@ -85,8 +83,14 @@ runs:
           lsb-release \
           wget \
           xdg-utils
+        sudo apt-get install -y libasound2 || sudo apt-get install -y libasound2t64
       shell: bash
     
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v1
+      with:
+        bun-version: latest
+
     - name: Install dependencies
       run: bun install
       shell: bash
@@ -100,6 +104,7 @@ runs:
         PORTAL_TOKEN: ${{ inputs.portal-token }}
         PORTAL_ASSET_ID: ${{ inputs.asset-id }}
         PORTAL_ASSET_NAME: ${{ inputs.asset-name }}
+        PORTAL_WAIT_UNTIL_PROCESSED: ${{ inputs.wait-processing }}
         FILE_TO_UPLOAD: ${{ inputs.file-path }}
         ZIP_ENABLED: ${{ inputs.zip-enabled }}
         ZIP_FILES: ${{ inputs.zip-files }}

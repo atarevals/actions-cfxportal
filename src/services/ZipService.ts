@@ -13,9 +13,9 @@ export class ZipService {
 	private config: ZipConfig;
 	private baseWorkspace: string;
 
-	constructor(config: ZipConfig) {
+	constructor(config: ZipConfig, baseWorkspace: string) {
 		this.config = config;
-		this.baseWorkspace = process.cwd();
+		this.baseWorkspace = baseWorkspace;
 		logger.debug(`Base workspace: ${this.baseWorkspace}`);
 	}
 
@@ -36,13 +36,16 @@ export class ZipService {
 			throw new Error("No output path specified for zip creation");
 		}
 
+		logger.debug(`Files to validate: ${this.config.files.join(", ")}`);
+
 		// Check if at least one file/folder exists
 		let foundFiles = false;
 		for (const file of this.config.files) {
 			const fullPath = path.resolve(this.baseWorkspace, file);
-			logger.debug(`Checking existence of: ${file}`);
+			logger.debug(`Checking existence of: ${file} (${fullPath})`);
 
 			if (existsSync(fullPath)) {
+				logger.debug(`File/folder exists: ${file}`);
 				foundFiles = true;
 				break;
 			}
@@ -51,18 +54,27 @@ export class ZipService {
 		if (!foundFiles) {
 			throw new Error("None of the specified files or folders exist");
 		}
+
+		logger.debug("Zip configuration is valid");
 	}
 
 	getFilesToInclude(): string[] {
-		const filesToInclude: string[] = [];
+		logger.debug(
+			`Resolving files to include in zip: ${this.config.files.join(", ")}`,
+		);
 
+		const filesToInclude: string[] = [];
 		for (const file of this.config.files) {
 			const fullPath = path.resolve(this.baseWorkspace, file);
+			logger.debug(`Resolving file: ${file} (${fullPath})`);
 
 			if (existsSync(fullPath)) {
+				logger.debug(`File/folder exists: ${file}`);
 				filesToInclude.push(file);
 			}
 		}
+
+		logger.debug(`Files to include in zip: ${filesToInclude.join(", ")}`);
 
 		return filesToInclude;
 	}
