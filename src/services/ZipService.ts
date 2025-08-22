@@ -36,6 +36,8 @@ export class ZipService {
 			throw new Error("No output path specified for zip creation");
 		}
 
+		logger.debug(`Files to validate: ${this.config.files.join(", ")}`);
+
 		// Check if at least one file/folder exists
 		let foundFiles = false;
 		for (const file of this.config.files) {
@@ -51,18 +53,26 @@ export class ZipService {
 		if (!foundFiles) {
 			throw new Error("None of the specified files or folders exist");
 		}
+
+		logger.debug("Zip configuration is valid");
 	}
 
 	getFilesToInclude(): string[] {
 		const filesToInclude: string[] = [];
 
 		for (const file of this.config.files) {
+			logger.debug(`Resolving file: ${file}`);
+
 			const fullPath = path.resolve(this.baseWorkspace, file);
+			logger.debug(`Full path resolved: ${fullPath}`);
 
 			if (existsSync(fullPath)) {
+				logger.debug(`File exists: ${fullPath}`);
 				filesToInclude.push(file);
 			}
 		}
+
+		logger.debug(`Files to include in zip: ${filesToInclude.join(", ")}`);
 
 		return filesToInclude;
 	}
