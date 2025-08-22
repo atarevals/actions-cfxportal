@@ -51,7 +51,6 @@ runs:
           ca-certificates \
           fonts-liberation \
           libappindicator3-1 \
-          libasound2t64 \
           libatk-bridge2.0-0 \
           libatk1.0-0 \
           libc6 \
@@ -85,6 +84,7 @@ runs:
           lsb-release \
           wget \
           xdg-utils
+        sudo apt-get install -y libasound2t64 || sudo apt-get install -y libasound2-dev libasound2
       shell: bash
     
     - name: Install dependencies
