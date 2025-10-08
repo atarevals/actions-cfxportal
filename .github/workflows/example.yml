@@ -32,7 +32,10 @@ jobs:
     - name: Upload to CFX Portal
       uses: ./
       with:
-        portal-token: ${{ secrets.CFX_PORTAL_TOKEN }}
+        portal-token: ${{ secrets.PORTAL_TOKEN }}
         asset-id: ${{ github.event.inputs.asset_id || vars.CFX_ASSET_ID }}
         asset-name: ${{ github.event.inputs.asset_name || vars.CFX_ASSET_NAME }}
         file-path: ${{ github.event.inputs.file_path || './dist/release.zip' }}
+        zip-enabled: 'true'
+        zip-files: '[src/, dist/main.js, README.md, package.json]'
+        zip-output-path: './dist/release.zip'
