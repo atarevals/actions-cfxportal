@@ -20,7 +20,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # local testing
 .github/workflows/test-local.yml
 dist/
-
+pnpm-lock.yaml
 .vars
 .secrets
 

@@ -8,87 +8,115 @@ import { config } from "./utils/config";
 import logger from "./utils/logger";
 
 const listFilesDirectory = (dir: string): string[] => {
-	const files: string[] = [];
-	const items = readdirSync(dir);
+  const files: string[] = [];
+  const items = readdirSync(dir);
 
-	for (const item of items) {
-		const fullPath = path.join(dir, item);
-		if (statSync(fullPath).isDirectory()) {
-			// ignore node_modules
-			if (item === "node_modules") continue;
-			files.push(...listFilesDirectory(fullPath));
-		} else {
-			files.push(fullPath);
-		}
-	}
+  for (const item of items) {
+    const fullPath = path.join(dir, item);
+    if (statSync(fullPath).isDirectory()) {
+      // ignore node_modules
+      if (item === "node_modules") continue;
+      files.push(...listFilesDirectory(fullPath));
+    } else {
+      files.push(fullPath);
+    }
+  }
 
-	return files;
+  return files;
 };
 
 async function run(): Promise<void> {
-	try {
-		logger.info("Starting CFX Portal upload process...");
+  try {
+    logger.info("Starting CFX Portal upload process...");
 
-		logger.debug(`Current folder: ${process.cwd()}`);
+    logger.debug(`Current folder: ${process.cwd()}`);
 
-		let fileToUpload = config.upload.filePath;
-		const workspace = env.USER_WORKSPACE ?? process.cwd();
+    let fileToUpload = config.upload.filePath;
+    const workspace = env.USER_WORKSPACE ?? process.cwd();
 
-		logger.debug("Given context:");
-		logger.debug(`* User Workspace: ${env.USER_WORKSPACE ?? "Not Set"}`);
-		logger.debug(`* CWD: ${process.cwd()}`);
-		logger.debug(`Files:`);
-		logger.debug(`* Workspace: ${listFilesDirectory(workspace).join(", ")}`);
-		logger.debug(`* CWD: ${listFilesDirectory(process.cwd()).join(", ")}`);
+    logger.debug("Given context:");
+    logger.debug(`* User Workspace (env): ${env.USER_WORKSPACE ?? "Not Set"}`);
+    logger.debug(`* CWD (process.cwd()): ${process.cwd()}`);
+    logger.debug(`* Resolved workspace: ${workspace}`);
 
-		// Create zip if enabled
-		if (config.zip.enabled) {
-			logger.info("Zip creation is enabled, creating zip file...");
+    try {
+      const workspaceFiles = listFilesDirectory(workspace);
+      logger.debug(`Files in workspace (${workspace}):`);
+      if (workspaceFiles.length > 0) {
+        logger.debug(`  ${workspaceFiles.slice(0, 20).join("\n  ")}`);
+        if (workspaceFiles.length > 20) {
+          logger.debug(`  ... and ${workspaceFiles.length - 20} more files`);
+        }
+      } else {
+        logger.debug("  (no files found)");
+      }
+    } catch (error) {
+      logger.error(`Error listing workspace files: ${error}`);
+    }
 
-			const zipService = new ZipService(config.zip, workspace);
-			zipService.validateConfig();
+    try {
+      const cwdFiles = listFilesDirectory(process.cwd());
+      logger.debug(`Files in CWD (${process.cwd()}):`);
+      if (cwdFiles.length > 0) {
+        logger.debug(`  ${cwdFiles.slice(0, 20).join("\n  ")}`);
+        if (cwdFiles.length > 20) {
+          logger.debug(`  ... and ${cwdFiles.length - 20} more files`);
+        }
+      } else {
+        logger.debug("  (no files found)");
+      }
+    } catch (error) {
+      logger.error(`Error listing CWD files: ${error}`);
+    }
 
-			const filesToInclude = zipService.getFilesToInclude();
-			logger.info(`Files to be included in zip: ${filesToInclude.join(", ")}`);
+    // Create zip if enabled
+    if (config.zip.enabled) {
+      logger.info("Zip creation is enabled, creating zip file...");
 
-			const zipPath = await zipService.createZip();
-			fileToUpload = zipPath;
-			logger.info(`Zip file created successfully: ${zipPath}`);
-		} else {
-			logger.info("Zip creation is disabled, using original file path");
+      const zipService = new ZipService(config.zip, workspace);
+      zipService.validateConfig();
 
-			const initialPath = config.upload.filePath;
-			const filePath = path.resolve(workspace, initialPath);
+      const filesToInclude = zipService.getFilesToInclude();
+      logger.info(`Files to be included in zip: ${filesToInclude.join(", ")}`);
 
-			if (!existsSync(filePath)) {
-				logger.error(`File not found: ${filePath}`);
-				process.exit(1);
-			}
+      const zipPath = await zipService.createZip();
+      fileToUpload = zipPath;
+      logger.info(`Zip file created successfully: ${zipPath}`);
+    } else {
+      logger.info("Zip creation is disabled, using original file path");
 
-			fileToUpload = filePath;
-			logger.info(`File to upload: ${fileToUpload}`);
-		}
+      const initialPath = config.upload.filePath;
+      const filePath = path.resolve(workspace, initialPath);
 
-		const browserService = new BrowserService();
-		await browserService.init();
-		await browserService.login();
+      if (!existsSync(filePath)) {
+        logger.error(`File not found: ${filePath}`);
+        process.exit(1);
+      }
 
-		const uploadService = new UploadService(browserService, fileToUpload);
-		await uploadService.initUpload();
-		await uploadService.uploadFile();
-		await uploadService.submitUpload();
+      fileToUpload = filePath;
+      logger.info(`File to upload: ${fileToUpload}`);
+    }
 
-		if (config.portal.waitUntilProcessed) {
-			await uploadService.waitUntilProcessed();
-		}
+    const browserService = new BrowserService();
+    await browserService.init();
+    await browserService.login();
 
-		await browserService.closeBrowser();
-		logger.info("Everything completed successfully!");
-	} catch (error) {
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		logger.error(`Error: ${errorMessage}`);
-		process.exit(1);
-	}
+    const uploadService = new UploadService(browserService, fileToUpload);
+    await uploadService.initUpload();
+    await uploadService.uploadFile();
+    await uploadService.submitUpload();
+
+    if (config.portal.waitUntilProcessed) {
+      await uploadService.waitUntilProcessed();
+    }
+
+    await browserService.closeBrowser();
+    logger.info("Everything completed successfully!");
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error(`Error: ${errorMessage}`);
+    process.exit(1);
+  }
 }
 
 run();
